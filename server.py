@@ -26,13 +26,23 @@ async def handler(websocket, _):
         data = json.loads(message)
         image_data = data.get("frame", "")
         
-        # Forward to Llama-Vision server (Ollama) with a prompt
-        response = requests.post(
-            LLAMA_VISION_URL,
-            json={"image": image_data, "prompt": PROMPT}
-        )
-        result = response.json().get("text", "No response.")
-        
+        # Prepare the payload to match the cURL example
+        payload = {
+            "model": "llama3.2-vision",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": PROMPT,
+                    "images": [image_data]
+                }
+            ]
+        }
+
+        # Send the request to the Llama-Vision server using the updated payload
+        response = requests.post(LLAMA_VISION_URL, json=payload)
+        result = response_data.get("response", "No response.")
+
+        # Forward the result to the Raspberry Pi
         await websocket.send(result)
 
 async def main():

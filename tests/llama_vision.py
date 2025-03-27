@@ -23,8 +23,14 @@ def test_llama_vision_api(image_path, prompt, api_endpoint="http://localhost:800
 
     # Send POST request to Llama-Vision
     payload = {
-        "image": encoded_image,
-        "prompt": prompt
+        "model": "llama3.2-vision",
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt,
+                "images": [encoded_image]
+            }
+        ]
     }
     response = requests.post(api_endpoint, json=payload)
     
