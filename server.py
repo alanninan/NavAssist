@@ -40,7 +40,7 @@ async def handler(websocket, _):
 
         # Send the request to the Llama-Vision server using the updated payload
         response = requests.post(LLAMA_VISION_URL, json=payload)
-        result = response_data.get("response", "No response.")
+        result = response.get("response", "No response.")
 
         # Forward the result to the Raspberry Pi
         await websocket.send(result)
