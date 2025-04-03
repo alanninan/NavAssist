@@ -19,42 +19,58 @@ import base64
 import json
 from gtts import gTTS
 import os
+from picamera2 import Picamera2
+import time
 
 # WebSocket server URI (replace <nvidia-server-ip> with the actual IP address)
 SERVER_URI = "ws://<nvidia-server-ip>:8765"
 
-# Function to capture frames from the camera and send them to the server
+# Function to initialize Picamera2 and return the instance
+def init_camera():
+    picam2 = Picamera2()
+    # Create a video configuration for continuous capture (adjust resolution if needed)
+    config = picam2.create_video_configuration(main={"size": (640, 480), "format": "RGB888"})
+    picam2.configure(config)
+    picam2.start()
+    # Allow camera to warm up a bit
+    time.sleep(0.2)
+    return picam2
+
+# Asynchronous function to capture frames using Picamera2 and send them via WebSocket
 async def send_frames():
-    # Open the default camera (index 0)
-    cap = cv2.VideoCapture(0)
+    # Initialize Picamera2
+    picam2 = init_camera()
     async with websockets.connect(SERVER_URI) as ws:
-        while True:
-            # Capture a frame from the camera
-            ret, frame = cap.read()
-            if not ret:
-                print("No frame captured.")
-                break
+        try:
+            while True:
+                # Capture a frame as a NumPy array (in RGB format)
+                frame_rgb = picam2.capture_array()
+                # Convert RGB (Picamera2 default) to BGR (OpenCV default)
+                frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+                # Encode the frame as JPEG
+                ret, buffer = cv2.imencode('.jpg', frame_bgr)
+                if not ret:
+                    print("Failed to encode frame.")
+                    break
 
-            # Encode the frame as JPEG and convert it to Base64
-            _, buffer = cv2.imencode('.jpg', frame)
-            encoded = base64.b64encode(buffer).decode('utf-8')
+                # Convert JPEG buffer to Base64 string
+                encoded = base64.b64encode(buffer).decode('utf-8')
+                # Send the encoded frame to the server via WebSocket
+                await ws.send(json.dumps({"frame": encoded}))
 
-            # Send the encoded frame to the server via WebSocket
-            await ws.send(json.dumps({"frame": encoded}))
+                # Receive the response from the server
+                response = await ws.recv()
+                print("LLM response:", response)
 
-            # Receive the response from the server
-            response = await ws.recv()
-            print("LLM response:", response)
+                # Convert the response text to speech and play it
+                speech = gTTS(text=response, lang='en')
+                speech.save("out.mp3")
+                os.system("mpg321 out.mp3")  # Adjust command for your environment
 
-            # Convert the response text to speech and play it
-            speech = gTTS(text=response, lang='en')
-            speech.save("out.mp3")
-            os.system("mpg321 out.mp3")  # Adjust for your environment
-
-            # Wait for 1 second before capturing the next frame
-            await asyncio.sleep(1)
-    # Release the camera resource
-    cap.release()
+                # Wait for 1 second before capturing the next frame
+                await asyncio.sleep(1)
+        finally:
+            picam2.stop()
 
 # Run the asynchronous function
 asyncio.run(send_frames())
