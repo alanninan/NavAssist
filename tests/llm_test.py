@@ -21,7 +21,7 @@ def test_llm_api(image_path, prompt, api_endpoint="http://localhost:11434/api/ch
         image_bytes = f.read()
     encoded_image = base64.b64encode(image_bytes).decode("utf-8")
 
-    # Send POST request to Llama-Vision
+    # Send POST request to LLaVA
     payload = {
         "model": "llava:7b",
         "messages": [
