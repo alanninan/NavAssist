@@ -18,7 +18,7 @@ import requests
 import json
 import base64
 
-LLAMA_VISION_URL = "http://localhost:8000/vision"
+LLM_API_URL = "http://localhost:11434/api/chat"
 PROMPT = "You are an assistive navigation guide for visually impaired users. Look at the image and provide a brief, clear description in one sentence (or two bullet points) that includes only essential information for safe navigation (key landmarks, obstacles, and directional cues). Use no more than 30 words and avoid extraneous details. If the image is unclear, provide your best interpretation without speculation."
 
 async def handler(websocket, _):
@@ -28,7 +28,7 @@ async def handler(websocket, _):
         
         # Prepare the payload to match the cURL example
         payload = {
-            "model": "llama3.2-vision",
+            "model": "llava:7b",
             "messages": [
                 {
                     "role": "user",
@@ -38,12 +38,24 @@ async def handler(websocket, _):
             ]
         }
 
-        # Send the request to the Llama-Vision server using the updated payload
-        response = requests.post(LLAMA_VISION_URL, json=payload)
-        result = response.get("response", "No response.")
+        # Send the request to the LLM server using the updated payload
+        response = requests.post(LLM_API_URL, json=payload)
+        if response.ok:
+            full_content = ""
+            for line in response.text.splitlines():
+                try:
+                    data = json.loads(line)
+                    full_content += data["message"]["content"]
+                except json.JSONDecodeError:
+                    print(f"Skipping invalid JSON: {line}")
+                except KeyError:
+                    print(f"Skipping line due to missing key: {line}")
+            print(full_content)
+        else:
+            print("Error:", response.status_code, response.text)
 
         # Forward the result to the Raspberry Pi
-        await websocket.send(result)
+        await websocket.send(full_content)
 
 async def main():
     async with websockets.serve(handler, "0.0.0.0", 8765):

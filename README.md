@@ -24,7 +24,7 @@ This project provides an assistive navigation solution for visually impaired ind
 ## Installation & Setup
 ### Prerequisites
 - Raspberry Pi with a camera module.
-- A server with an AI model (Llama-Vision or equivalent).
+- A server with an AI model.
 - Python 3.x installed on both devices.
 - Required Python libraries:
   ```sh
@@ -43,7 +43,7 @@ This project provides an assistive navigation solution for visually impaired ind
    ```
 
 ### Running the Processing Server
-1. Ensure the AI model API (Llama-Vision) is running.
+1. Ensure the AI model API (LLava) is running.
 2. Start the WebSocket server:
    ```sh
    python server.py
@@ -58,7 +58,7 @@ This project provides an assistive navigation solution for visually impaired ind
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
-- Meta's Llama 3.2 Vision.
+- LLaVA
 - OpenCV and gTTS for video processing and speech synthesis.
 
 ## Contribution
