@@ -21,7 +21,7 @@ import base64
 LLM_API_URL = "http://localhost:11434/api/chat"
 PROMPT = "You are an assistive navigation guide for visually impaired users. Look at the image and provide a brief, clear description in one sentence that includes only essential information for safe navigation (key landmarks, obstacles, and directional cues; no colors). Use no more than 30 words, avoid extraneous details and do not call it an image - talk of the image as if it is in front of the user. If the image is unclear, provide your best interpretation without speculation."
 
-async def handler(websocket, _):
+async def handler(websocket):
     async for message in websocket:
         data = json.loads(message)
         image_data = data.get("frame", "")
