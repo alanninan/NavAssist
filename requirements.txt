@@ -1,5 +1,5 @@
 asyncio
 websockets
 opencv-python
-gtts
+pyttsx3
 requests

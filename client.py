@@ -17,7 +17,7 @@ import websockets
 import cv2
 import base64
 import json
-from gtts import gTTS
+import pyttsx3
 import os
 from picamera2 import Picamera2
 import time
@@ -63,9 +63,9 @@ async def send_frames():
                 print("LLM response:", response)
 
                 # Convert the response text to speech and play it
-                speech = gTTS(text=response, lang='en')
-                speech.save("out.mp3")
-                os.system("mpg321 out.mp3")  # Adjust command for your environment
+                engine = pyttsx3.init()
+                engine.say(response)
+                engine.runAndWait()
 
                 # Wait for 1 second before capturing the next frame
                 await asyncio.sleep(1)
