@@ -26,7 +26,6 @@ async def handler(websocket):
         data = json.loads(message)
         image_data = data.get("frame", "")
         
-        # Prepare the payload to match the cURL example
         payload = {
             "model": "llava:7b",
             "messages": [
